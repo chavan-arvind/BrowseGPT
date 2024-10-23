@@ -24,6 +24,35 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Using the New Features
+
+### Cloning a Repository
+
+To clone a repository from GitHub, use the `pullRepo` tool. Provide the repository URL and the local path where you want to clone the repository.
+
+Example usage:
+```json
+{
+  "tool": "pullRepo",
+  "parameters": {
+    "repoUrl": "https://github.com/username/repository.git",
+    "localPath": "/path/to/local/directory"
+  }
+}
+```
+
+### Improving Security
+
+To search for the best cyber security practices, use the `improveSecurity` tool. This tool does not require any parameters.
+
+Example usage:
+```json
+{
+  "tool": "improveSecurity",
+  "parameters": {}
+}
+```
+
 ## Learn More
 
 To learn more about Vercel AI SDK and Browserbase, take a look at the following resources:
