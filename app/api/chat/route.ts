@@ -5,6 +5,7 @@ import { chromium } from 'playwright';
 import {anthropic} from '@ai-sdk/anthropic'
 import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
+import { exec } from 'child_process';
 
 const bb_api_key = process.env.BROWSERBASE_API_KEY!
 const bb_project_id = process.env.BROWSERBASE_PROJECT_ID!
@@ -36,6 +37,27 @@ async function createSession() {
   });
   const data = await response.json();
   return { id: data.id, debugUrl: data.debugUrl };
+}
+
+async function pullRepoFromGit(repoUrl: string, localPath: string) {
+  return new Promise((resolve, reject) => {
+    exec(`git clone ${repoUrl} ${localPath}`, (error, stdout, stderr) => {
+      if (error) {
+        reject(`Error cloning repository: ${stderr}`);
+      } else {
+        resolve(`Repository cloned successfully: ${stdout}`);
+      }
+    });
+  });
+}
+
+async function searchBestSecurityPractices() {
+  const response = await fetch('https://www.google.com/search?q=best+cyber+security+practices');
+  const html = await response.text();
+  const dom = new JSDOM(html);
+  const reader = new Readability(dom.window.document);
+  const article = reader.parse();
+  return article?.textContent || 'No content found';
 }
 
 // Main API route handler
@@ -168,6 +190,33 @@ export async function POST(req: Request) {
           }
         },
       }),
+      pullRepo: tool({
+        description: 'Clone a repository from GitHub',
+        parameters: z.object({
+          repoUrl: z.string().describe('The URL of the repository to clone'),
+          localPath: z.string().describe('The local path where the repository should be cloned')
+        }),
+        execute: async ({ repoUrl, localPath }) => {
+          try {
+            const result = await pullRepoFromGit(repoUrl, localPath);
+            return { toolName: 'Cloning repository', content: result };
+          } catch (error) {
+            return { toolName: 'Cloning repository', content: `Error cloning repository: ${error}` };
+          }
+        }
+      }),
+      improveSecurity: tool({
+        description: 'Search for best cyber security practices',
+        parameters: z.object({}),
+        execute: async () => {
+          try {
+            const result = await searchBestSecurityPractices();
+            return { toolName: 'Searching for best security practices', content: result };
+          } catch (error) {
+            return { toolName: 'Searching for best security practices', content: `Error searching for best security practices: ${error}` };
+          }
+        }
+      })
     },
   });
 
